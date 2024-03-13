@@ -187,19 +187,29 @@ def convert_type(type_original: Any):
 
 def node_info_to_node_dict(node_str_types: str, node_info: Dict[str, Any], t: type):
     # constructing input_port_id_to_type
-    required_input_port_id = node_info['input']['required'].keys()
-    required_input_type = [convert_type(x[0]) for x in node_info['input']['required'].values()]
-    optional_input_port_id = node_info['input']['optional'].keys()
-    optional_input_type = [convert_type(x[0]) for x in node_info['input']['optional'].values()]
+    required_input_port_id = []
+    required_input_type = []
+    if 'input' in node_info and 'required' in node_info['input']:
+        required_input_port_id = list(node_info['input']['required'].keys())
+        required_input_type = [convert_type(x[0]) for x in node_info['input']['required'].values()]
 
-    input_port_id = list(required_input_port_id) + list(optional_input_port_id)
-    input_type = list(required_input_type) + list(optional_input_type)
+    optional_input_port_id = []
+    optional_input_type = []
+    if 'input' in node_info and 'optional' in node_info['input']:
+        optional_input_port_id = list(node_info['input']['optional'].keys())
+        optional_input_type = [convert_type(x[0]) for x in node_info['input']['optional'].values()]
+
+    input_port_id = required_input_port_id + optional_input_port_id
+    input_type = required_input_type + optional_input_type
 
     input_port_id_to_type = dict(zip(input_port_id, input_type))
 
     # constructing output_port_id_to_type
     output_type = [a if not b else "<class 'list'>" for a, b in zip(node_info['output'], node_info['output_is_list'])]
     output_port_id_to_type = dict(zip(node_info['output_name'], output_type))
+    if len(output_port_id_to_type) == 0:
+        # if there is no output, then it is a None type
+        output_port_id_to_type = {"output": "None"}
 
     # constructing input_port_id_to_default
     execute_fn = getattr(t, t.FUNCTION)
