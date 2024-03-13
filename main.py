@@ -17,16 +17,6 @@ from backend import variable
 from backend.app import app
 from backend.utils import SafeJSONResponse
 
-
-@app.get('/ComfyUIManager/install')
-async def install(request: Request):
-    if variable.node_loader is None:
-        return SafeJSONResponse(status_code=500, content={"error": "Server failed to load nodes."})
-
-    return SafeJSONResponse(status_code=200, content={})
-
-
-# TODO: search plugins
 # TODO: auto install plugins and their requirements
 # TODO: execute_prestartup_script
 
@@ -155,7 +145,7 @@ def init_custom_nodes():
         print()
 
 
-init_custom_nodes()
+init_custom_nodes() # This function sets EXTENSION_WEB_DIRS, NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
 
 # These are the default folders that checkpoints, clip and vae models will be saved to when using CheckpointSave, etc.. nodes
 folder_paths.add_model_folder_path("checkpoints", os.path.join(folder_paths.get_output_directory(), "checkpoints"))
@@ -311,8 +301,6 @@ node_loader.add_plugin(
     dicts=dicts,
 )
 
-import urllib.parse
-import urllib.request
 from fastapi import Request
 from backend import variable
 from backend.app import app
@@ -366,20 +354,6 @@ def gitclone_install(files):
 
     print("Installation was successful.")
     return True
-
-
-# @app.post('/ComfyUIManager/plugins/update/{url:path}')
-# async def comfyui_manager_update_plugin(request: Request, url: str):
-#     """Client request to update ComfyUI plugin
-
-#     Args:
-#         url (str): url of the plugin
-#     """
-#     url = urllib.parse.unquote(url)
-#     if variable.node_loader is None:
-#         return SafeJSONResponse(status_code=500, content={"error": "Server failed to load nodes."})
-
-#     return SafeJSONResponse(status_code=200, content={})
 
 
 @app.get('/ComfyUIManager/plugins')
@@ -441,6 +415,10 @@ async def comfyui_manager_install_plugin(request: Request, payload: Dict[Any, An
     with open(installed_plugins_cache_file, 'w') as f:
         json.dump(installed_plugins_cache, f)
 
+    # reload plugins
+    variable.node_loader.__init__(external_node_path=variable.node_loader.external_node_path)
+    variable.node_loader.execute_mainpy_files(variable_module=variable)
+
     return SafeJSONResponse(status_code=200, content={})
 
 
@@ -472,5 +450,9 @@ async def comfyui_manager_remove_plugin(request: Request, payload: Dict[Any, Any
         installed_plugins_cache.pop(payload['name'], None)
         with open(installed_plugins_cache_file, 'w') as f:
             json.dump(installed_plugins_cache, f)
+
+    # reload plugins
+    variable.node_loader.__init__(external_node_path=variable.node_loader.external_node_path)
+    variable.node_loader.execute_mainpy_files(variable_module=variable)
 
     return SafeJSONResponse(status_code=200, content={})
