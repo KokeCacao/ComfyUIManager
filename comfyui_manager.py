@@ -34,6 +34,26 @@ except ImportError:
         f.write("from nodes.ComfyUIManager._folder_paths import *")
     import folder_paths # type: ignore
 
+# Dynamically load comfy as a module
+import sys
+import importlib.util
+
+
+def load_package(package_name, package_path):
+    spec = importlib.util.spec_from_file_location(package_name, package_path + '/__init__.py')
+    if spec is not None and spec.loader is not None:
+        package = importlib.util.module_from_spec(spec)
+        sys.modules[package_name] = package
+        spec.loader.exec_module(package)
+        return package
+    else:
+        raise ImportError(f"Could not load package {package_name} from {package_path}")
+
+
+# Example usage
+package_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "_comfy")
+package = load_package('comfy', package_path)
+
 
 class ComfyUIManager(BaseNode):
     """A node to manage ComfyUI-native nodes"""
