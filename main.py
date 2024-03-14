@@ -7,6 +7,7 @@ import importlib.util
 import pathlib
 import inspect
 import subprocess
+import torch
 
 import folder_paths # type: ignore
 
@@ -22,9 +23,11 @@ from backend.utils import SafeJSONResponse
 
 # THE FOLLOWING CODE ARE TAKEN AND MODIFIED FROM COMFY-UI
 
-EXTENSION_WEB_DIRS = {} # Well, we can't do anything with js injection
-NODE_CLASS_MAPPINGS: Dict[str, type] = {} # Similar to node_loader.external_nodes
-NODE_DISPLAY_NAME_MAPPINGS: Dict[str, str] = {}
+from nodes.ComfyUIManager._nodes import NODE_CLASS_MAPPINGS as _NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as _NODE_DISPLAY_NAME_MAPPINGS, EXTENSION_WEB_DIRS as _EXTENSION_WEB_DIRS
+
+EXTENSION_WEB_DIRS = _EXTENSION_WEB_DIRS # Well, we can't do anything with js injection
+NODE_CLASS_MAPPINGS: Dict[str, type] = _NODE_CLASS_MAPPINGS # Similar to node_loader.external_nodes
+NODE_DISPLAY_NAME_MAPPINGS: Dict[str, str] = _NODE_DISPLAY_NAME_MAPPINGS
 
 
 def load_custom_node(module_path, ignore=set()):
@@ -282,15 +285,21 @@ def monkey_patch_comfy_nodes(t):
     def execute(self, *args, **kwargs) -> Dict[str, Any]:
         ret = execute_fn(self, *args, **kwargs)
         if type(ret) == tuple:
-            assert len(ret) == len(self.RETURN_TYPES), f"Return type length {len(ret)} is not equal to the length of RETURN_TYPES {len(self.RETURN_TYPES)}."
-            ret_names = self.RETURN_NAMES
-            ret = {ret_names[i]: value for i, value in enumerate(ret)}
+            assert len(ret) >= len(self.RETURN_TYPES), f"Return type length {len(ret)} is not equal to or greater than the length of RETURN_TYPES {len(self.RETURN_TYPES)}."
+            ret_names = self.RETURN_NAMES if hasattr(self, 'RETURN_NAMES') else self.RETURN_TYPES
+            ret = {name: ret[i] for i, name in enumerate(ret_names)}
+            # The rest of ret are UI elements
             return ret
+        elif type(ret) == dict:
+            # That means only UI element is returned
+            return {'output': None}
         else:
-            raise ValueError(f"Return type {type(ret)} is not a tuple. Please report this issue to https://github.com/KokeCacao/KatUI/issues")
+            raise ValueError(f"Return type {type(ret)} cannot be correctly parsed. Please report this issue to https://github.com/KokeCacao/KatUI/issues")
 
     def _execute(self, *args, **kwargs) -> Dict[str, Any]:
-        return execute(self, *args, **kwargs)
+        with torch.no_grad():
+            # TODO: give user option whether to use torch.no_grad() or not
+            return execute(self, *args, **kwargs)
 
     setattr(t, 'execute', execute)
     setattr(t, '_execute', _execute)
