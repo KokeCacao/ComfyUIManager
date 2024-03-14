@@ -30,11 +30,25 @@ def load_package(package_name, package_path):
         raise ImportError(f"Could not load package {package_name} from {package_path}")
 
 
-# Add _folder_paths to sys.modules as folder_paths module
-load_module('folder_paths', os.path.join(os.path.dirname(os.path.realpath(__file__)), "_folder_paths.py"))
+# Note: the order of executing these matters!
+
+# Add chainner_models to sys.modules as chainner_models package
+# load_package('chainner_models', os.path.join(os.path.dirname(os.path.realpath(__file__)), "comfy_extras", "chainner_models"))
 
 # Add comfy to sys.modules as comfy package
 load_package('comfy', os.path.join(os.path.dirname(os.path.realpath(__file__)), "comfy"))
+
+# Add comfy_extras to sys.modules as comfy_extras package
+load_package('comfy_extras', os.path.join(os.path.dirname(os.path.realpath(__file__)), "comfy_extras"))
+
+# Add _folder_paths to sys.modules as folder_paths module
+load_module('folder_paths', os.path.join(os.path.dirname(os.path.realpath(__file__)), "_folder_paths.py"))
+
+# Add _latent_preview to sys.modules as latent_preview module
+load_module('latent_preview', os.path.join(os.path.dirname(os.path.realpath(__file__)), "_latent_preview.py"))
+
+# Add nodes.py to sys.modules as nodes module (a very hacky way to do this)
+setattr(sys.modules['nodes'], 'MAX_RESOLUTION', 8192)
 
 
 class ComfyUIManager(BaseNode):
