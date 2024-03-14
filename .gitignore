@@ -1,3 +1,6 @@
 __pycache__
 installed_plugins_cache.json
 custom_nodes
+models
+output
+input
