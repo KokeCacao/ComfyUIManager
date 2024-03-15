@@ -48,6 +48,8 @@ load_module('folder_paths', os.path.join(os.path.dirname(os.path.realpath(__file
 load_module('latent_preview', os.path.join(os.path.dirname(os.path.realpath(__file__)), "_latent_preview.py"))
 
 # Add nodes.py to sys.modules as nodes module (a very hacky way to do this)
+import nodes # THIS LINE IS ESSENTIAL! IT FORCE THE PROGRAM TO INITIALIZE THE NODES MODULE
+
 setattr(sys.modules['nodes'], 'MAX_RESOLUTION', 8192)
 
 
