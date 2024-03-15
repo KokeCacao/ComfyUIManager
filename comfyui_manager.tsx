@@ -545,7 +545,7 @@ export function ComfyUIManager(node: NodeProps) {
       nodeType={node.type}
       nodeDataState={node.data.state}
       nodeDataInput={node.data.input}
-      nodeDataCachePolicy={node.data.cachePolicy}
+      nodeDataCachePolicy={node.data.cache_policy}
       nodeDataOutput={node.data.output}
     />
   );
