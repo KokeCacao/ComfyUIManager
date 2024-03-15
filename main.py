@@ -263,15 +263,13 @@ def monkey_patch_comfy_nodes(t):
     original_fn = getattr(t, '__init__')
     execute_fn = getattr(t, t.FUNCTION)
 
-    # Modify __init__() function of the class so that we can call
-    # (_node_id=node_id, _sio=sio, _loop=loop, _sid=sid, _uuid=variable.sid2uuid[sid])
+    # Modify __init__() function of the class so that we can call it with arguments
     # Although ComfyUI plugin will never use them
 
-    def modified_init(self, *_args, _node_id=None, _sio=None, _loop=None, _sid=None, _uuid=None, **_kwargs) -> None:
+    def modified_init(self, *_args, _node_id=None, _sio=None, _loop=None, _uuid=None, **_kwargs) -> None:
         self._node_id = _node_id
         self._sio = _sio
         self._loop = _loop
-        self._sid = _sid
         self._uuid = _uuid
         original_fn(self, *_args, **_kwargs)
 
