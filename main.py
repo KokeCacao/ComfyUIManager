@@ -23,7 +23,7 @@ from backend.utils import SafeJSONResponse
 
 # THE FOLLOWING CODE ARE TAKEN AND MODIFIED FROM COMFY-UI
 
-from nodes.ComfyUIManager._nodes import NODE_CLASS_MAPPINGS as _NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as _NODE_DISPLAY_NAME_MAPPINGS, EXTENSION_WEB_DIRS as _EXTENSION_WEB_DIRS
+from ._nodes import NODE_CLASS_MAPPINGS as _NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as _NODE_DISPLAY_NAME_MAPPINGS, EXTENSION_WEB_DIRS as _EXTENSION_WEB_DIRS
 
 EXTENSION_WEB_DIRS = _EXTENSION_WEB_DIRS # Well, we can't do anything with js injection
 NODE_CLASS_MAPPINGS: Dict[str, type] = _NODE_CLASS_MAPPINGS # Similar to node_loader.external_nodes
@@ -323,7 +323,7 @@ from backend import variable
 from backend.app import app
 from backend.utils import SafeJSONResponse
 
-from nodes.ComfyUIManager._external_functions import *
+from ._external_functions import *
 
 
 # not using ComfyUIManager's gitclone_install because I don't want to add git to the dependencies
