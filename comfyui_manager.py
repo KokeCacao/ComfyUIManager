@@ -8,7 +8,7 @@ import sys
 import importlib.util
 
 
-def load_module(module_name, module_path):
+def load_module(module_name: str, module_path: str):
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     if spec is not None and spec.loader is not None:
         module = importlib.util.module_from_spec(spec)
@@ -19,7 +19,7 @@ def load_module(module_name, module_path):
         raise ImportError(f"Could not load module {module_name} from {module_path}")
 
 
-def load_package(package_name, package_path):
+def load_package(package_name: str, package_path: str):
     spec = importlib.util.spec_from_file_location(package_name, package_path + '/__init__.py')
     if spec is not None and spec.loader is not None:
         package = importlib.util.module_from_spec(spec)
