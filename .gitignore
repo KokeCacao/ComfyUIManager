@@ -5,3 +5,4 @@ models/*
 output/*
 input/*
 !**/.katignore
+!custom_nodes/scripts
