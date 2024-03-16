@@ -1,4 +1,5 @@
 import os
+import types
 from backend.loader.decorator import KatzukiNode
 from backend.nodes.builtin import BaseNode
 from typing import Any
@@ -72,10 +73,25 @@ load_module('folder_paths', os.path.join(os.path.dirname(os.path.realpath(__file
 # Add _latent_preview to sys.modules as latent_preview module
 load_module('latent_preview', os.path.join(os.path.dirname(os.path.realpath(__file__)), "_latent_preview.py"))
 
+# Add _server to sys.modules as server module and patch it so that it doesn't generate error
+server_module = load_module('server', os.path.join(os.path.dirname(os.path.realpath(__file__)), "_server.py"))
+setattr(server_module, '__getattr__', lambda name: server_module)
+
 # Add nodes.py to sys.modules as nodes module (a very hacky way to do this)
 import nodes # THIS LINE IS ESSENTIAL! IT FORCE THE PROGRAM TO INITIALIZE THE NODES MODULE
+# The `nodes` above is the actual nodes package from KatUI, now we are injecting nodes.py from ComfyUI
+# Besides this attempt to ready _nodes.py file, there is another import statement in main.py file like `from ._nodes import NODE_CLSAS_MAPPINGS ...`
 
-setattr(sys.modules['nodes'], 'MAX_RESOLUTION', 8192)
+def load_from_node(name):
+    try:
+        _node_module = importlib.import_module("ComfyUIManager._nodes")
+        return getattr(_node_module, name)
+    except (ImportError, AttributeError) as e:
+        raise ImportError(name) from e
+
+# Add __getattr__ to the nodes module if it doesn't already exist
+if not isinstance(getattr(nodes, '__getattr__', None), types.FunctionType):
+    setattr(nodes, '__getattr__', load_from_node) # nodes.__getattr__ = __getattr__
 
 
 class ComfyUIManager(BaseNode):

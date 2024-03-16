@@ -177,6 +177,10 @@ def node_info(node_class):
     return info
 
 
+import backend.log as log
+
+logger = log.get_logger()
+
 def convert_type(type_original: Any):
     if type(type_original) == str:
         return type_original
@@ -185,7 +189,8 @@ def convert_type(type_original: Any):
         if all(isinstance(x, str) for x in type_original):
             _type_original = [f"'{x}'" for x in type_original]
             return f"typing.Literal[{', '.join(_type_original)}]"
-    raise ValueError(f"Type {type_original} is not supported. Please report this issue to https://github.com/KokeCacao/KatUI/issues")
+    logger.error(f"Type {type(type_original)} with value{type_original} is not supported. Please report this issue to https://github.com/KokeCacao/KatUI/issues")
+    return "Any"
 
 
 def node_info_to_node_dict(node_str_types: str, node_info: Dict[str, Any], t: type):
